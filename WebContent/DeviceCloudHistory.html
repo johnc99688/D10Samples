@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html dir="ltr">
+    
+    <head>
+        <style type="text/css">
+            body, html { font-family:helvetica,arial,sans-serif; font-size:90%; }
+        </style>
+        <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" djConfig="parseOnLoad: true">
+        </script>
+    
+        <script language="javascript" type="text/javascript">
+	     	// Require all dependencies
+			dojo.require("dojox.charting.Chart2D");
+			dojo.require("dojox.charting.themes.Claro");
+			dojo.require("dojo.store.Observable");
+			dojo.require("dojo.store.Memory");
+			dojo.require("dojox.charting.StoreSeries");
+			
+			// When resources are loaded and the DOM is ready....
+			dojo.ready(function(){
+				
+                var data = [0];
+				// Initial data
+                dojo.xhrGet({
+        	        url: "http://localhost:8080/DeviceCloud/devices/device1/data/history",
+                    handleAs: "json",
+        	        load: function(dataJson) {
+        	            // Log the result to console for inspection
+        	            console.info("EnergyCloud Raw Data All4: ",dataJson);
+        	            for (var key in dataJson) 
+        	            { 
+        	            	console.info(key + " -> " + dataJson[key]);
+        	            	for (var key2 in dataJson[key]) {
+        	            		console.info("key2: " + key2 + ", value: " + dataJson[key][key2])
+	       	            		data.push(dataJson[key]["temp"])
+        	            	}
+        	            }
+
+                        // Create the chart within it's "holding" node
+                        // Global so users can hit it from the console
+                        chart = new dojox.charting.Chart2D("chartNode");
+	
+                        // Set the theme
+                        chart.setTheme(dojox.charting.themes.Claro);
+	
+                        // Add the only/default plot 
+                        chart.addPlot("default", {
+                            type: "Lines",
+                            markers: true
+                        });
+				
+                        // Add axes
+                        chart.addAxis("x", { microTickStep: 1, minorTickStep: 1, max: 60 });
+                        chart.addAxis("y", { vertical: true, fixLower: "major", fixUpper: "major", minorTickStep: 1 });
+	
+                        // Add the storeseries - Query for all data
+                        //chart.addSeries("y", new dojox.charting.StoreSeries(store, { query: { site: 1 } }, "value"));
+                        chart.addSeries("y", data);
+
+                        // Render the chart!
+                        chart.render();
+                    }
+        	    });
+			});
+        </script>
+        <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css"
+        />
+    </head>
+    
+    <body class=" claro ">
+        <div id="chartNode" style="width:800px;height:400px;"></div>
+    </body>
+
+</html>
